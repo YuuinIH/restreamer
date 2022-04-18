@@ -1,91 +1,105 @@
 <template>
   <div class="common-layout">
-    <el-container>
-      <el-header class="header">
-        <el-button type="primary" :icon="Plus" circle @click="opencreate=true"/>
-        <el-button
-          type="primary"
-          :icon="RefreshRight"
-          circle
-          @click="getStreamList()"
-        />
-      </el-header>
-      <el-main>
-        <el-collapse>
-          <div v-show="opencreate">
-            <p>创建</p>
-            <el-form :model="create" label-width="120px">
-              <el-form-item label="名称">
-                <el-input v-model="create.name" />
-              </el-form-item>
-              <el-form-item label="画面来源">
-                <el-input v-model="create.sourceurl" />
-              </el-form-item>
-              <el-form-item label="目标推流">
-                <el-input v-model="create.streamurl" />
-              </el-form-item>
-              <el-form-item label="自动重启">
-                <el-switch v-model="create.autorestart" />
-              </el-form-item>
-            </el-form>
-            <el-button-group>
-              <el-button type="primary" :icon="Edit" @click="Save('', create);opencreate=false"
-                >保存</el-button
-              >
-              <el-button type="primary" @click="opencreate=false"
-                >关闭</el-button
-              >
-            </el-button-group>
-          </div>
-          <el-collapse-item
-            v-for="(item, name) in streamer"
-            :name="item.name"
-            :title="`${name.toString()} ${getstatename(item.status)}`"
-          >
-            <el-form :model="item" label-width="120px">
-              <el-form-item label="名称">
-                <el-input v-model="item.name" />
-              </el-form-item>
-              <el-form-item label="画面来源">
-                <el-input v-model="item.sourceurl" />
-              </el-form-item>
-              <el-form-item label="目标推流">
-                <el-input v-model="item.streamurl" />
-              </el-form-item>
-              <el-form-item label="自动重启">
-                <el-switch v-model="item.autorestart" />
-              </el-form-item>
-            </el-form>
-            <el-button-group>
-              <el-button
-                type="primary"
-                :icon="Edit"
-                @click="Save(name.toString(), item)"
-                >保存</el-button
-              >
-              <el-button
-                type="primary"
-                :icon="CaretRight"
-                @click="start(name.toString())"
-                >启动</el-button
-              >
-              <el-button
-                type="primary"
-                :icon="VideoPause"
-                @click="stop(name.toString())"
-                >停止</el-button
-              >
-              <el-button
-                type="danger"
-                :icon="Delete"
-                @click="del(name.toString())"
-                >删除</el-button
-              >
-            </el-button-group>
-          </el-collapse-item>
-        </el-collapse>
-      </el-main>
-    </el-container>
+    <el-menu class="el-menu-demo" mode="horizontal">
+      <el-menu-item index="1">星霜转播机</el-menu-item>
+    </el-menu>
+    <div style="display: flex">
+      <el-menu
+        default-active="2"
+        class="el-menu-vertical-demo"
+        :collapse="true"
+      >
+        <el-menu-item index="1" @click="opencreate = true">
+          <el-icon><plus /></el-icon>
+          <template #title>添加</template>
+        </el-menu-item>
+        <el-menu-item index="2">
+          <el-icon><RefreshRight /></el-icon>
+          <template #title>刷新</template>
+        </el-menu-item>
+      </el-menu>
+      <div style="padding: 20px;width: 100%;">
+      <el-collapse>
+        <div v-show="opencreate">
+          <p>创建</p>
+          <el-form :model="create" label-width="120px">
+            <el-form-item label="名称">
+              <el-input v-model="create.name" />
+            </el-form-item>
+            <el-form-item label="画面来源">
+              <el-input v-model="create.sourceurl" />
+            </el-form-item>
+            <el-form-item label="目标推流">
+              <el-input v-model="create.streamurl" />
+            </el-form-item>
+            <el-form-item label="自动重启">
+              <el-switch v-model="create.autorestart" />
+            </el-form-item>
+          </el-form>
+          <el-button-group>
+            <el-button
+              type="primary"
+              :icon="Edit"
+              @click="
+                Save('', create);
+                opencreate = false;
+              "
+              >保存</el-button
+            >
+            <el-button type="primary" @click="opencreate = false"
+              >关闭</el-button
+            >
+          </el-button-group>
+        </div>
+        <el-collapse-item
+          v-for="(item, name) in streamer"
+          :name="item.name"
+          :title="`${name.toString()} ${getstatename(item.status)}`"
+        >
+          <el-form :model="item" label-width="120px">
+            <el-form-item label="名称">
+              <el-input v-model="item.name" />
+            </el-form-item>
+            <el-form-item label="画面来源">
+              <el-input v-model="item.sourceurl" />
+            </el-form-item>
+            <el-form-item label="目标推流">
+              <el-input v-model="item.streamurl" />
+            </el-form-item>
+            <el-form-item label="自动重启">
+              <el-switch v-model="item.autorestart" />
+            </el-form-item>
+          </el-form>
+          <el-button-group>
+            <el-button
+              type="primary"
+              :icon="Edit"
+              @click="Save(name.toString(), item)"
+              >保存</el-button
+            >
+            <el-button
+              type="primary"
+              :icon="CaretRight"
+              @click="start(name.toString())"
+              >启动</el-button
+            >
+            <el-button
+              type="primary"
+              :icon="VideoPause"
+              @click="stop(name.toString())"
+              >停止</el-button
+            >
+            <el-button
+              type="danger"
+              :icon="Delete"
+              @click="del(name.toString())"
+              >删除</el-button
+            >
+          </el-button-group>
+        </el-collapse-item>
+      </el-collapse>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -138,7 +152,7 @@ const create = ref<Streamer>({
   autorestart: false,
   status: -1,
 });
-const opencreate = ref<boolean>(false)
+const opencreate = ref<boolean>(false);
 const getStreamList = async () => {
   const response = await fetch(api.toString(), {
     method: "GET",
