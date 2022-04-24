@@ -19,7 +19,7 @@ FROM node:18 as panelbuilder
 WORKDIR /app
 
 COPY web ./
-RUN cd ./web && npm install -g yarn && yarn && yarn build
+RUN cd npm install -g yarn && yarn && yarn build
 
 ##
 ## Build
@@ -27,7 +27,7 @@ RUN cd ./web && npm install -g yarn && yarn && yarn build
 FROM alpine:3.14
 
 WORKDIR /root/
-COPY --from=panelbuilder /app/web/dist ./web/dist
+COPY --from=panelbuilder /app/dist ./web/dist
 COPY --from=builder /app/restreamer ./restreamer
 
 EXPOSE 13232
