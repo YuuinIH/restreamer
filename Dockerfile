@@ -33,4 +33,4 @@ COPY --from=builder /app/restreamer ./restreamer
 EXPOSE 13232
 VOLUME [ "/root/stream.json" ]
 
-ENTRYPOINT ["./islog"]
+ENTRYPOINT ["./restreamer"]
