@@ -143,7 +143,7 @@ const api = new URL(document.URL);
 if (import.meta.env.DEV) {
   api.host = "127.0.0.1:13232";
 }
-api.pathname = "/api/streamer";
+api.pathname += "/api/streamer";
 const streamer = ref<Streamerlist>();
 const create = ref<Streamer>({
   name: "",
