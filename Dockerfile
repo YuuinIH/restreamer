@@ -19,7 +19,7 @@ FROM node:18 as panelbuilder
 WORKDIR /app
 
 COPY web ./
-RUN cd npm install -g yarn && yarn && yarn build
+RUN npm install -g yarn && yarn && yarn build
 
 ##
 ## Build
