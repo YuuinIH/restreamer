@@ -27,6 +27,7 @@ RUN yarn && yarn build
 FROM alpine:3.14
 
 WORKDIR /root/
+RUN apk update&&apk add ffmpeg
 COPY --from=panelbuilder /app/dist ./web/dist
 COPY --from=builder /app/restreamer ./restreamer
 
