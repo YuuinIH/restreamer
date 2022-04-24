@@ -31,6 +31,6 @@ COPY --from=panelbuilder /app/dist ./web/dist
 COPY --from=builder /app/restreamer ./restreamer
 
 EXPOSE 13232
-VOLUME [ "/root/stream.json" ]
+VOLUME [ "/root/data/" ]
 
 ENTRYPOINT ["./restreamer"]

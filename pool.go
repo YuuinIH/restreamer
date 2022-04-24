@@ -16,7 +16,7 @@ var streamerpool Streamermap
 
 func init() {
 	streamerpool = make(map[string]*Streamer)
-	if _, err := os.Stat("./stream.json"); os.IsNotExist(err) {
+	if _, err := os.Stat("./data/stream.json"); os.IsNotExist(err) {
 		fmt.Println("文件不存在,正在创建")
 		os.Create("./stream.json")
 		streamerpool.WriteFile()
@@ -109,7 +109,7 @@ func (m Streamermap) WriteFile() {
 		fmt.Println(err.Error())
 		return
 	}
-	err = ioutil.WriteFile("./stream.json", j, 0666)
+	err = ioutil.WriteFile("./data/stream.json", j, 0666)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
