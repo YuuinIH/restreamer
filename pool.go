@@ -22,7 +22,7 @@ func init() {
 		streamerpool.WriteFile()
 		return
 	}
-	o, err := ioutil.ReadFile("./stream.json")
+	o, err := ioutil.ReadFile("./data/stream.json")
 	if err != nil {
 		log.Panic(err)
 		return
