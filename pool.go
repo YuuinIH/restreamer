@@ -10,12 +10,12 @@ import (
 	"os"
 )
 
-type Streamermap map[string]*Streamer
+type Streamermap map[string]Streamer
 
 var streamerpool Streamermap
 
 func init() {
-	streamerpool = make(map[string]*Streamer)
+	streamerpool = make(map[string]Streamer)
 	if _, err := os.Stat("./data/stream.json"); os.IsNotExist(err) {
 		fmt.Println("文件不存在,正在创建")
 		os.Create("./stream.json")
@@ -60,13 +60,13 @@ func (m Streamermap) Createstreamer(config *Streamconfig) error {
 	}
 	s, e := m[config.Name]
 	if e {
-		if streamurl != s.Streamurl {
+		if streamurl != s.GetStreamurl() {
 			s.Updatestreamurl(streamurl)
 		}
-		if sourceurl != s.Sourceurl {
+		if sourceurl != s.GetSourceurl() {
 			s.Updatesourceurl(sourceurl)
 		}
-		s.Autorestart = config.Autorestart
+		s.SetAutorestart(config.Autorestart)
 	} else {
 		m[config.Name], err = NewStreamer(config.Name, sourceurl, streamurl, config.Autorestart)
 		if err != nil {
@@ -82,7 +82,7 @@ func (m Streamermap) DeleteStreamer(name string) error {
 	if !e {
 		return errors.New("name no exited")
 	}
-	if s.Checkstate() != PAUSE {
+	if s.GetState() != PAUSE {
 		err := s.Stopstream()
 		if err != nil {
 			return err
@@ -95,12 +95,12 @@ func (m Streamermap) DeleteStreamer(name string) error {
 
 func (m Streamermap) WriteFile() {
 	s := []*Streamconfig{}
-	for _, value := range m {
+	for _, v := range m {
 		d := &Streamconfig{
-			Name:        value.Name,
-			Streamurl:   value.Streamurl.String(),
-			Sourceurl:   value.Sourceurl.String(),
-			Autorestart: value.Autorestart,
+			Name:        v.GetName(),
+			Streamurl:   v.GetSourceurl().String(),
+			Sourceurl:   v.GetStreamurl().String(),
+			Autorestart: v.IsAutorestart(),
 		}
 		s = append(s, d)
 	}
