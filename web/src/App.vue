@@ -80,7 +80,7 @@
             <el-button
               type="primary"
               :icon="CaretRight"
-              @click="start(name.toString())"
+              @click="Save(name.toString(), item);start(name.toString())"
               >启动</el-button
             >
             <el-button

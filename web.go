@@ -53,7 +53,7 @@ func web() {
 			if !e {
 				return errors.New("name no exited")
 			}
-			err := s.Startstream()
+			err := s.StartStream()
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func web() {
 			if !e {
 				return errors.New("name no exited")
 			}
-			err := s.Stopstream()
+			err := s.StopStream()
 			if err != nil {
 				return err
 			}

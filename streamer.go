@@ -11,16 +11,14 @@ import (
 
 //转播实例
 type streamer struct {
-	mu            sync.Mutex
-	Name          string        `json:"name"`
-	State         streamerstate `json:"state"`
-	Streamurl     *url.URL      `json:"streamurl,string"`
-	Sourceurl     *url.URL      `json:"sourceurl,string"`
-	Autorestart   bool          `json:"autorestart"`
-	restreamer    *ffmpeg
-	canclewaiting bool
-	waitingonce   *sync.Once
-	sign          chan int
+	mu          sync.Mutex
+	Name        string        `json:"name"`
+	State       streamerstate `json:"state"`
+	streamurl   *url.URL
+	sourceurl   *url.URL
+	Autorestart bool `json:"autorestart"`
+	restreamer  *ffmpeg
+	waitingonce *sync.Once
 }
 
 type Streamer interface {
@@ -30,12 +28,12 @@ type Streamer interface {
 	GetName() string
 	GetState() streamerstate
 
-	Startstream() error
-	Stopstream() error
-	Restartstream() error
-	SetAutorestart(bool) error
-	Updatestreamurl(url *url.URL) error
-	Updatesourceurl(url *url.URL) error
+	StartStream() error
+	StopStream() error
+	RestartStream() error
+	SetAutoRestart(bool) error
+	UpdateStreamurl(url *url.URL) error
+	UpdateSourceurl(url *url.URL) error
 }
 
 type streamerstate int
@@ -49,10 +47,11 @@ const (
 func NewStreamer(Name string, Sourceurl *url.URL, Streamurl *url.URL, Autorestart bool) (Streamer, error) {
 	s := &streamer{
 		Name:        Name,
-		Streamurl:   Streamurl,
-		Sourceurl:   Sourceurl,
+		streamurl:   Streamurl,
+		sourceurl:   Sourceurl,
 		Autorestart: Autorestart,
-		sign:        make(chan int),
+		State:       PAUSE,
+		waitingonce: new(sync.Once),
 	}
 	var err error
 	if err != nil {
@@ -66,11 +65,11 @@ func (s *streamer) GetName() string {
 }
 
 func (s *streamer) GetSourceurl() *url.URL {
-	return s.Sourceurl
+	return s.sourceurl
 }
 
 func (s *streamer) GetStreamurl() *url.URL {
-	return s.Streamurl
+	return s.streamurl
 }
 
 func (s *streamer) GetState() streamerstate {
@@ -89,62 +88,68 @@ func (s *streamer) MarshalJSON() ([]byte, error) {
 		Status    int    `json:"status"`
 		*Alias
 	}{
-		Streamurl: s.Streamurl.String(),
-		Sourceurl: s.Sourceurl.String(),
+		Streamurl: s.streamurl.String(),
+		Sourceurl: s.sourceurl.String(),
 		Alias:     (*Alias)(s),
+		Status:    int(s.State),
 	})
 }
 
-func (s *streamer) streaminstance() {
+func (s *streamer) streamInstance() {
 	var err error
+	s.mu.Lock()
 	s.restreamer, err = NewFFmpeg()
 	if err != nil {
-		s.Stopstream()
+		s.StopStream()
+		s.mu.Unlock()
 		return
 	}
-	s.mu.Lock()
 	s.State = RUNNING
 	s.mu.Unlock()
 
-	s.restreamer.Stream(*s.Sourceurl, *s.Streamurl)
+	s.restreamer.Stream(*s.sourceurl, *s.streamurl)
 	//Before exit,check if the streamer is autorestart
 
 	s.mu.Lock()
 	s.waitingonce = new(sync.Once)
 	if s.Autorestart {
 		s.State = WAITING
+		go func() {
+			fmt.Printf("Streamer %s is waiting for restart\n", s.Name)
+			time.Sleep(time.Second * 5)
+			if s.State == WAITING {
+				go s.StartStream()
+			}
+		}()
 		s.mu.Unlock()
-		fmt.Printf("Streamer %s is waiting for restart\n", s.Name)
-		time.Sleep(time.Second * 5)
-		go s.Startstream()
 		return
 	}
 	s.State = PAUSE
 	s.mu.Unlock()
 }
 
-func (s *streamer) SetAutorestart(Autorestart bool) error {
+func (s *streamer) SetAutoRestart(Autorestart bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.Autorestart = Autorestart
 	return nil
 }
 
-func (s *streamer) Updatestreamurl(url *url.URL) error {
+func (s *streamer) UpdateStreamurl(url *url.URL) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.Streamurl = url
+	s.streamurl = url
 	return nil
 }
 
-func (s *streamer) Updatesourceurl(url *url.URL) error {
+func (s *streamer) UpdateSourceurl(url *url.URL) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.Sourceurl = url
+	s.sourceurl = url
 	return nil
 }
 
-func (s *streamer) Stopstream() error {
+func (s *streamer) StopStream() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	fmt.Println("Recive stop,stop streamer...")
@@ -158,16 +163,30 @@ func (s *streamer) Stopstream() error {
 	return nil
 }
 
-func (s *streamer) Startstream() error {
+func (s *streamer) StartStream() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.waitingonce.Do(func() {
-		fmt.Println("Restart streaming...")
-		go s.streaminstance()
+		fmt.Println("Start streaming...")
+		go s.streamInstance()
 	})
 	return nil
 }
 
-func (s *streamer) Restartstream() error {
+func (s *streamer) RestartStream() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	switch s.State {
+	case PAUSE:
+		s.State = WAITING
+		go s.StartStream()
+	case WAITING:
+		go s.StartStream()
+	case RUNNING:
+		s.mu.Unlock()
+		s.StopStream()
+		s.StopStream()
+		s.mu.Lock()
+	}
 	return nil
 }

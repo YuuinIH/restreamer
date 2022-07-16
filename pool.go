@@ -61,12 +61,12 @@ func (m Streamermap) Createstreamer(config *Streamconfig) error {
 	s, e := m[config.Name]
 	if e {
 		if streamurl != s.GetStreamurl() {
-			s.Updatestreamurl(streamurl)
+			s.UpdateStreamurl(streamurl)
 		}
 		if sourceurl != s.GetSourceurl() {
-			s.Updatesourceurl(sourceurl)
+			s.UpdateSourceurl(sourceurl)
 		}
-		s.SetAutorestart(config.Autorestart)
+		s.SetAutoRestart(config.Autorestart)
 	} else {
 		m[config.Name], err = NewStreamer(config.Name, sourceurl, streamurl, config.Autorestart)
 		if err != nil {
@@ -83,7 +83,7 @@ func (m Streamermap) DeleteStreamer(name string) error {
 		return errors.New("name no exited")
 	}
 	if s.GetState() != PAUSE {
-		err := s.Stopstream()
+		err := s.StopStream()
 		if err != nil {
 			return err
 		}
