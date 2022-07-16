@@ -72,6 +72,9 @@ func (m Streamermap) Createstreamer(config *Streamconfig) error {
 		if err != nil {
 			return err
 		}
+		if config.Autorestart {
+			m[config.Name].StartStream()
+		}
 	}
 	go m.WriteFile()
 	return nil
