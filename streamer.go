@@ -117,9 +117,11 @@ func (s *streamer) streamInstance() {
 		go func() {
 			fmt.Printf("Streamer %s is waiting for restart\n", s.Name)
 			time.Sleep(time.Second * 5)
+			s.mu.Lock()
 			if s.State == WAITING {
 				go s.StartStream()
 			}
+			s.mu.Unlock()
 		}()
 		s.mu.Unlock()
 		return
